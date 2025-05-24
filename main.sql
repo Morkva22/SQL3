@@ -3,14 +3,14 @@ GO
 
 -------
 
-IF DB_ID('master') IS NOT NULL
-DROP DATABASE master
-IF DB_ID ('master') IS NULL
-CREATE DATABASE master
+IF DB_ID('') IS NOT NULL
+DROP DATABASE
+IF DB_ID ('') IS NULL
+CREATE DATABASE
 
 ------
 
-USE master
+USE
 GO
 
 -----
