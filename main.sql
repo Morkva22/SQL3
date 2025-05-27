@@ -269,4 +269,109 @@ INSERT INTO Diseases (Name, SeverityLevel, IsContagious) VALUES
 (N'COVID-19', 7, 1),
 (N'Migraine', 2, 0)
 
+-- Insert data into disease specializations table
+INSERT INTO DiseaseSpecializations (DiseaseId, SpecializationId) VALUES
+(1, 4),
+(2, 3),
+(3, 1),
+(3, 2),
+(4, 2)
+
+-- Insert data into examinations table
+INSERT INTO Examinations (DiseaseId, DepartmentId, WardId, ExamDate) VALUES
+(1, 5, 5, DATEADD(MONTH, -2, GETDATE())),
+(2, 4, 4, DATEADD(MONTH, -5, GETDATE())),
+(3, 1, 1, DATEADD(DAY, -10, GETDATE())),
+(4, 3, 3, DATEADD(MONTH, -1, GETDATE()))
+
+-- Execute the current batch of scripts
+GO
+
+-- Print the full names of the doctors and their specializations.
+SELECT D.Name + N' ' + D.Surname AS 'Full Name', S.Name AS 'Specialization'
+FROM Doctors AS D
+LEFT JOIN DoctorsSpecializations AS DS ON D.Id = DS.DoctorId
+LEFT JOIN Specializations AS S ON DS.SpecializationId = S.Id
+GO
+
+-- Print the names and salaries (the sum of the rate and allowances) of doctors who are not on vacation.
+SELECT D.Surname AS 'Surname', D.Salary + D.Premium  AS 'Total Salary'
+FROM Doctors AS D
+WHERE D.Id NOT IN(SELECT DoctorId FROM Vacations)
+GO
+
+-- Print the names of the wards located in the Intensive Treatment department.
+SELECT W.Name FROM Wards AS W
+JOIN Departments AS D ON W.DepartmentId = D.Id
+WHERE D.Name = N'Intensive Treatment departmenT'
+GO
+
+-- Print the names of the wards without duplication, sponsored by Umbrella Corporation.
+SELECT DISTINCT W.Name FROM Wards AS W
+JOIN Departments AS D ON W.DepartmentID = D.ID
+JOIN Donations AS D2 ON W.DepartmentId = D2.DepartmentId
+JOIN Sponsors S ON D2.SponsorId = S.ID
+WHERE S.Name = N'Umbrella Corporation'
+GO
+
+
+-- Print all donations for the last month in the form: department, sponsor, donation amount, date of donation.
+SELECT D2.Name, S.Name, D.Amount, D.Date FROM Donations AS D
+JOIN Departments AS D2 ON D.DepartmentId = D2.ID
+JOIN Sponsors AS S ON D.SponsorId = S.ID
+WHERE D.Date >= DATEADD(MONTH, -1, GETDATE())
+GO
+
+-- Print the names of the doctors with the departments in which they conduct examinations. It is necessary to take into account the examinations that are conducted only on weekdays.
+SELECT DISTINCT D.Name + N' ' + D.Surname AS 'Full Name', D2.Name AS 'DepartmentName' FROM Examinations AS E
+JOIN Doctors AS D ON E.Id = D.ID
+JOIN Departments AS D2 ON E.DepartmentId = D2.ID
+WHERE DATENAME(WEEKDAY, E.ExamDate) NOT IN ('Saturday', 'Sunday')
+GO
+
+-- Print the names of the wards and departments in which the doctor "Helen Williams" is examined.
+SELECT W.Name AS 'Ward', D2.Name AS 'Department' FROM Examinations AS E
+JOIN Wards AS W ON W.ID = E.WardId
+JOIN Departments AS D2 ON W.DepartmentID = D2.ID
+JOIN Doctors AS D ON E.Id = D.ID
+WHERE D.Name = N'Helen' AND D.Surname = N'Williams'
+GO
+
+-- Print the names of the wards that received donations of more than 100000 with their doctors.
+SELECT W.Name AS 'WARD', D.Name + N' ' + D.Surname AS 'Full Name' FROM Wards AS W
+JOIN Wards AS W2 ON W.ID = W2.ID
+JOIN Doctors AS D ON W2.DepartmentID = D.ID
+JOIN Donations AS D2 ON W2.DepartmentID = D2.DepartmentId
+WHERE D2.Amount > 100000
+GO
+
+-- Print the names of the departments that have doctors who do not receive a bonus.
+SELECT DISTINCT De.Name FROM Doctors AS Doc
+JOIN DoctorsSpecializations Doc on Doc.Id = Doc.DoctorId
+JOIN Specializations AS Sp ON Doc.SpecializationId = Sp.Id
+JOIN Departments AS De ON Sp.ID = De.ID
+WHERE Doc.Premium = 0
+GO
+
+-- Print the names of the specializations used to treat diseases with a severity level higher than 3.
+SELECT DISTINCT S.Name, D.SeverityLevel FROM Diseases AS D
+JOIN DiseaseSpecializations AS DS ON D.ID = DS.DiseaseId
+JOIN Specializations AS S ON DS.SpecializationId = S.Id
+WHERE D.SeverityLevel > 3
+GO
+
+-- Print the names of the departments and the names of the diseases that were examined in the last six months.
+SELECT D.Name AS 'Department', Di.Name FROM Examinations AS E
+JOIN Departments AS D ON E.DepartmentId = D.ID
+JOIN Diseases AS Di ON E.DiseaseId = Di.Id
+WHERE E.ExamDate >= DATEADD(MONTH, -6 , GETDATE())
+GO
+
+-- Print the names of the departments and the names of the wards where examinations for contagious diseases were conducted.
+SELECT DISTINCT D.Name AS 'Department', W.Name AS 'Ward' FROM Examinations AS E
+JOIN Departments AS D ON E.DepartmentId =D.Id
+JOIN Wards AS W ON E.WardId = W.Id
+JOIN Diseases D2 ON E.DiseaseId = D2.Id
+WHERE D2.IsContagious = 1
+GO
 
