@@ -346,11 +346,9 @@ WHERE D2.Amount > 100000
 GO
 
 -- Print the names of the departments that have doctors who do not receive a bonus.
-SELECT DISTINCT De.Name FROM Doctors AS Doc
-JOIN DoctorsSpecializations Doc on Doc.Id = Doc.DoctorId
-JOIN Specializations AS Sp ON Doc.SpecializationId = Sp.Id
-JOIN Departments AS De ON Sp.ID = De.ID
-WHERE Doc.Premium = 0
+SELECT DISTINCT D.Name FROM Departments AS D
+JOIN DoctorsSpecializations AS Doc on Doc.SpecializationId = D.Id
+JOIN Doctors AS D3 ON Doc.DoctorId = D3.Id AND D3.Premium = 0
 GO
 
 -- Print the names of the specializations used to treat diseases with a severity level higher than 3.
